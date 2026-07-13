@@ -8,7 +8,7 @@ def clear(): os.system('clear')
 
 def menu_inicio():
     clear()
-    return input('Selecciona una opción:\n1. Descargar enlace YouTube\n2. Descargar fichero\n3. Salir\n\nOpción (1|2|3): ')
+    return input('Selecciona una opción:\n1. Descargar enlace (YouTube / OK.ru / ...)\n2. Descargar fichero\n3. Salir\n\nOpción (1|2|3): ')
 
 
 def seleccionar_accion():
@@ -92,8 +92,11 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
             num = int(input('Nº vídeo: ')) - 1
 
         selected = unique_formats[num]
+        # Mergea el vídeo elegido con el mejor audio (YouTube: streams DASH separados).
+        # Si no hay audio aparte (OK.ru entrega HLS ya muxeado), cae al propio format_id
+        # para respetar la calidad seleccionada en vez de a '/best'.
         opts = {
-            'format': '{0}+bestaudio/best'.format(selected['format_id']),
+            'format': '{0}+bestaudio/{0}'.format(selected['format_id']),
             'outtmpl': os.path.join(parent_dir, 'video', '%(title)s.%(ext)s'),
             'merge_output_format': 'mp4',
         }

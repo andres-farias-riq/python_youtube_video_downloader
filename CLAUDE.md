@@ -22,6 +22,8 @@ python main.py
 
 This is a small Python CLI app (~140 lines across 3 source files):
 
+The download backend is `yt-dlp`, so the app works with any site `yt-dlp` supports (YouTube, OK.ru/Odnoklassniki, etc.) — the download flows contain no platform-specific logic.
+
 - **`main.py`** — All application logic: CLI menus, video/audio download flows using `yt-dlp`. Audio-to-MP3 conversion and video+audio merging are handled by `yt-dlp` via ffmpeg internally.
 - **`config.py`** — Single constant `RUTA_DESCARGAS`, the filesystem path where downloads are saved. Change this to point to your local downloads folder.
 - **`conf_management.py`** — Thin wrapper that exposes `get_ruta_descargas()` from `config.py`.
@@ -29,7 +31,7 @@ This is a small Python CLI app (~140 lines across 3 source files):
 ### Download modes (selected interactively at runtime)
 
 1. **Quick video+audio** — Best available MP4 stream (video and audio bundled). Saved to `<RUTA_DESCARGAS>/video/`.
-2. **Video with quality selection** — Lists available resolutions; downloads the selected video stream and best audio, then merges them via ffmpeg into a single MP4. Saved to `<RUTA_DESCARGAS>/video/`.
+2. **Video with quality selection** — Lists available resolutions; downloads the selected video stream and best audio, then merges them via ffmpeg into a single MP4. For sources that only provide muxed streams (e.g. OK.ru's HLS, which has no separate audio track), it falls back to downloading the selected format as-is instead of the global best, so the chosen quality is always respected. Saved to `<RUTA_DESCARGAS>/video/`.
 3. **Audio only** — Downloads best audio stream and converts to MP3 at 192kbps via ffmpeg. Saved to `<RUTA_DESCARGAS>/audio/`.
 
 Input can be a single URL or a plain-text file containing one URL per line (batch mode). In batch mode, quality selection defaults to the first (highest-resolution) stream.
