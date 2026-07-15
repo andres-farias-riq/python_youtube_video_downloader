@@ -16,7 +16,15 @@ def seleccionar_accion():
 
 
 def pide_url():
-    return input('Url vídeo: ')
+    return input('Url vídeo (vacío para volver al menú): ').strip()
+
+
+def elige_job():
+    job = ''
+    while job not in ['1', '2', '3']:
+        clear()
+        job = seleccionar_accion()
+    return job
 
 
 def procesa_fichero(ruta):
@@ -190,31 +198,29 @@ if __name__ == "__main__":
     tarea = None
 
     while tarea != '3':
-        enlaces = []
-        loop = False
         tarea = menu_inicio()
-        clear()
 
-        if tarea == '1':
-            enlaces.append(pide_url())
-        elif tarea == '2':
-            loop = True
+        if tarea == '1':  # Modo continuo: se pegan URLs una tras otra
+            job = elige_job()
+            clear()
+            print('Modo continuo — pega URLs una tras otra.')
+            print('Deja la URL vacía para volver al menú.')
+            while True:
+                url = pide_url()
+                if not url:
+                    break
+                inicia_proceso_descarga(url, job, False, parent_dir)
+
+        elif tarea == '2':  # Modo fichero (lote)
             ruta_fichero = input('Ruta fichero enlaces: ')
             enlaces = procesa_fichero(ruta_fichero)
-
-        if not enlaces:
-            continue
-
-        job = ''
-        while job not in ['1', '2', '3']:
+            if not enlaces:
+                continue
+            job = elige_job()
             clear()
-            job = seleccionar_accion()
-
-        clear()
-        total = len(enlaces)
-        resultados = []
-        for i, enlace in enumerate(enlaces, 1):
-            resultados.append(inicia_proceso_descarga(enlace, job, loop, parent_dir, i, total))
-
-        resumen_final(resultados)
-        input('\nPulsa Enter para volver al menú…')
+            total = len(enlaces)
+            resultados = []
+            for i, enlace in enumerate(enlaces, 1):
+                resultados.append(inicia_proceso_descarga(enlace, job, True, parent_dir, i, total))
+            resumen_final(resultados)
+            input('\nPulsa Enter para volver al menú…')
