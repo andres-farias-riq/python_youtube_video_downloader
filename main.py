@@ -86,7 +86,6 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
                 **YTDLP_BASE_OPTS,
                 'format': 'best[ext=mp4]/best',
                 'outtmpl': os.path.join(parent_dir, 'video', '%(title)s.%(ext)s'),
-                'logger': logging.getLogger('yt_dlp'),
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([link])
@@ -96,7 +95,6 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
                 **YTDLP_BASE_OPTS,
                 'format': 'bestaudio/best',
                 'outtmpl': os.path.join(parent_dir, 'audio', '%(title)s.%(ext)s'),
-                'logger': logging.getLogger('yt_dlp'),
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -136,7 +134,6 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
                 'format': '{0}+bestaudio/best'.format(selected['format_id']),
                 'outtmpl': os.path.join(parent_dir, 'video', '%(title)s.%(ext)s'),
                 'merge_output_format': 'mp4',
-                'logger': logging.getLogger('yt_dlp'),
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([link])
@@ -157,6 +154,7 @@ if __name__ == '__main__':
     setup_logging(parent_dir)
 
     while True:
+      try:
         clear()
         tarea = questionary.select(
             '¿Qué deseas hacer?',
@@ -177,6 +175,10 @@ if __name__ == '__main__':
             url = questionary.text('URL del vídeo:').ask()
             if url:
                 enlaces.append(url.strip())
+            else:
+                print('No se ingresó ninguna URL.')
+                input('Presiona Enter para continuar...')
+                continue
         elif tarea == 'file':
             loop = True
             ruta = questionary.path('Ruta del fichero de enlaces:').ask()
@@ -188,6 +190,8 @@ if __name__ == '__main__':
                 continue
 
         if not enlaces:
+            print('Lista de enlaces vacía.')
+            input('Presiona Enter para continuar...')
             continue
 
         clear()
@@ -201,6 +205,8 @@ if __name__ == '__main__':
         ).ask()
 
         if job is None:
+            print('No se seleccionó modo de descarga.')
+            input('Presiona Enter para continuar...')
             continue
 
         for enlace in enlaces:
@@ -208,3 +214,7 @@ if __name__ == '__main__':
 
         input('\nPresiona Enter para volver al menú...')
         clear()
+      except Exception as e:
+        print('\nError inesperado: {0}'.format(e))
+        logging.error('Error inesperado en el loop principal: %s', e, exc_info=True)
+        input('Presiona Enter para continuar...')
