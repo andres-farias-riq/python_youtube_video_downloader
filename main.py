@@ -32,6 +32,26 @@ YTDLP_BASE_OPTS = {
 }
 
 
+def _patch_odnoklassniki():
+    # ok.ru ahora incrusta los metadatos del video ya como objeto JSON, pero el
+    # extractor de yt-dlp (hasta 2026.08.19 inclusive) intenta parsearlos como
+    # string y falla con "the JSON object must be str, bytes or bytearray, not dict".
+    # Este parche acepta el dict tal cual y deja intacto el resto del comportamiento.
+    from yt_dlp.extractor import odnoklassniki as odk
+
+    original = odk.OdnoklassnikiIE._parse_json
+
+    def parse_json(self, json_string, video_id, *args, **kwargs):
+        if isinstance(json_string, (dict, list)):
+            return json_string
+        return original(self, json_string, video_id, *args, **kwargs)
+
+    odk.OdnoklassnikiIE._parse_json = parse_json
+
+
+_patch_odnoklassniki()
+
+
 def setup_logging(parent_dir):
     log_path = os.path.join(parent_dir, 'downloader.log')
     logging.basicConfig(
@@ -69,8 +89,9 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
     try:
         info = get_info(link)
     except Exception as e:
-        logging.error('Error obteniendo info del link %s: %s', link, e)
-        print('Error en el link: {0}'.format(link))
+        logging.error('Error obteniendo info del link %s: %s', link, e, exc_info=True)
+        print('No se pudo obtener información del enlace: {0}'.format(link))
+        print('Motivo: {0}'.format(e))
         return
 
     print('')
@@ -84,8 +105,14 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
         if job == 'fast':
             opts = {
                 **YTDLP_BASE_OPTS,
-                'format': 'best[ext=mp4]/best',
+                # YouTube ya no entrega streams con video+audio combinados, así que
+                # se descargan por separado (hasta 720p) y se unen con ffmpeg.
+                # Se prefiere H.264 (avc1) por compatibilidad con QuickTime y TVs.
+                'format': 'bestvideo[ext=mp4][vcodec^=avc1][height<=720]+bestaudio[ext=m4a]/'
+                          'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/'
+                          'bestvideo[height<=720]+bestaudio/best[height<=720]/best',
                 'outtmpl': os.path.join(parent_dir, 'video', '%(title)s.%(ext)s'),
+                'merge_output_format': 'mp4',
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([link])
