@@ -29,6 +29,8 @@ def _js_runtimes():
 YTDLP_BASE_OPTS = {
     'js_runtimes': _js_runtimes(),
     'remote_components': {'ejs:github'},
+    # Si la URL trae ?list=..., descargar solo el video y no la playlist completa.
+    'noplaylist': True,
 }
 
 
@@ -106,11 +108,11 @@ def inicia_proceso_descarga(link, job, loop, parent_dir):
             opts = {
                 **YTDLP_BASE_OPTS,
                 # YouTube ya no entrega streams con video+audio combinados, así que
-                # se descargan por separado (hasta 720p) y se unen con ffmpeg.
+                # se descargan por separado (hasta 1080p) y se unen con ffmpeg.
                 # Se prefiere H.264 (avc1) por compatibilidad con QuickTime y TVs.
-                'format': 'bestvideo[ext=mp4][vcodec^=avc1][height<=720]+bestaudio[ext=m4a]/'
-                          'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/'
-                          'bestvideo[height<=720]+bestaudio/best[height<=720]/best',
+                'format': 'bestvideo[ext=mp4][vcodec^=avc1][height<=1080]+bestaudio[ext=m4a]/'
+                          'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/'
+                          'bestvideo[height<=1080]+bestaudio/best[height<=1080]/best',
                 'outtmpl': os.path.join(parent_dir, 'video', '%(title)s.%(ext)s'),
                 'merge_output_format': 'mp4',
             }
@@ -225,7 +227,7 @@ if __name__ == '__main__':
         job = questionary.select(
             '¿Cómo deseas descargarlo?',
             choices=[
-                questionary.Choice('Descarga rápida (vídeo + audio, hasta 720p)', value='fast'),
+                questionary.Choice('Descarga rápida (vídeo + audio, hasta 1080p)', value='fast'),
                 questionary.Choice('Seleccionar calidad (mejor calidad disponible)', value='quality'),
                 questionary.Choice('Solo audio (MP3 192kbps)', value='audio'),
             ]

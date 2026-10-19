@@ -28,7 +28,7 @@ This is a small Python CLI app (~140 lines across 3 source files):
 
 ### Download modes (selected interactively at runtime)
 
-1. **Quick video+audio** — Best H.264 MP4 video up to 720p plus best M4A audio, merged via ffmpeg (YouTube no longer serves bundled video+audio streams). Saved to `<RUTA_DESCARGAS>/video/`.
+1. **Quick video+audio** — Best H.264 MP4 video up to 1080p plus best M4A audio, merged via ffmpeg (YouTube no longer serves bundled video+audio streams). Saved to `<RUTA_DESCARGAS>/video/`.
 2. **Video with quality selection** — Lists available resolutions; downloads the selected video stream and best audio, then merges them via ffmpeg into a single MP4. Saved to `<RUTA_DESCARGAS>/video/`.
 3. **Audio only** — Downloads best audio stream and converts to MP3 at 192kbps via ffmpeg. Saved to `<RUTA_DESCARGAS>/audio/`.
 
